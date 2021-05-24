@@ -13,14 +13,14 @@ const RIGHT = 1;
 // const view = document.getElementById('field');
 
 
-class Block {
+class Node {
   static count = 0;
   constructor(x, y, prev = null, next = null) {
     this.x = x;
     this.y = y;
     this.prev = prev;
     this.next = next;
-    this.id = Block.count++;
+    this.id = Node.count++;
   }
 
   moveTo(x, y) {
@@ -32,7 +32,7 @@ class Block {
 
 class Snake {
   constructor(x = START_X, y = START_Y) {
-    this.head = new Block(x, y);
+    this.head = new Node(x, y);
     this.tail = this.head;
     this.length = 1;
     const direction = getRandomDirection();
@@ -68,7 +68,7 @@ class Snake {
 
   /* May lengthen only before walk */
   lengthen() {
-    const newTail = new Block(this.tail.x, this.tail.y, this.tail, null);
+    const newTail = new Node(this.tail.x, this.tail.y, this.tail, null);
     this.tail.next = newTail;
     this.tail = newTail;
     this.length += 1;
@@ -83,21 +83,21 @@ class Snake {
       head.y < 0
     ) return false;
 
-    let block = this.head.next;
-    while (block != null) {
-      if (block.x == head.x && block.y == head.y) {
+    let node = this.head.next;
+    while (node != null) {
+      if (node.x == head.x && node.y == head.y) {
         return false;
       }
-      block = block.next;
+      node = node.next;
     }
     return true;
   }
 
   print() {
-    let block = this.head;
-    while(block != null) {
-      console.log(`${block.id}:`, block.x, block.y);
-      block = block.next;
+    let node = this.head;
+    while(node != null) {
+      console.log(`${node.id}:`, node.x, node.y);
+      node = node.next;
     }
     console.log(
       `---- Head: ${this.head.id} (${this.head.x}, ${this.head.y})`,  
@@ -122,20 +122,20 @@ function devRender(snake) {
     field[i] = new Array(FIELD_WIDTH);
   }
 
-  let block = snake.head;
+  let node = snake.head;
   let i = 0;
-  while(block != null) {
+  while(node != null) {
     if (
-      block.x >= FIELD_WIDTH ||
-      block.x < 0 ||
-      block.y >= FIELD_HEIGHT ||
-      block.y < 0
+      node.x >= FIELD_WIDTH ||
+      node.x < 0 ||
+      node.y >= FIELD_HEIGHT ||
+      node.y < 0
     ) {
-      block = block.next;
+      node = node.next;
       continue;
     };
-    field[block.y][block.x] = i++;
-    block = block.next;
+    field[node.y][node.x] = i++;
+    node = node.next;
   }
 
   for (let i = 0; i < FIELD_WIDTH; i++) {
