@@ -88,96 +88,54 @@ class Coordinates extends Array {
   }
 }
 
-module.exports = Coordinates;
+
+class Snake {
+  constructor() {
+    this.coords = new Coordinates();
+    const direction = getRandomDirection();
+    this.directionX = direction[0];
+    this.directionY = direction[1];
+    this.coords.push(START_X, START_Y);
+  }
+
+  turn(dirX, dirY) {
+    if (dirX && !this.directionX) {
+      this.directionX = dirX;
+      this.directionY = 0;
+    } else if (dirY && !this.directionY) {
+      this.directionY = dirY;
+      this.directionX = 0
+    }
+  }
+
+  walk(grow = false) {
+    this.coords.push(
+      this.coords.x() + this.directionX,
+      this.coords.y() + this.directionY
+    );
+    if (grow) return;
+
+    this.coords.shift();
+    return;
+  }
+
+  isAlive() {
+    const x = this.coords.x(),
+          y = this.coords.y();
+    return x >= 0 && 
+      x < FIELD_WIDTH && 
+      y >= 0 && 
+      y < FIELD_HEIGHT && 
+      !this.find()
+  }
+}
 
 
-// class Snake {
-//   constructor() {
-//     this.positions = new Array(QUEUE_CAPACITY);
-//     this.head = this.tail = 0;
-//     this.length = 0;
-//     const direction = getRandomDirection();
-//     this.directionX = direction[0];
-//     this.directionY = direction[1];
-
-//     this.positions[this.head] = START_X;
-//     this.coordsY[this.head] = START_Y;
-//     this.head += 1;
-//     this.length += 1;
-//   }
-
-//   x() {
-//     return this.coordsX[this.head - 1];
-//   }
-  
-//   y() {
-//     return this.coordsY[this.head - 1];
-//   }
-
-//   walk(grow = false) {
-//     this.coordsX[this.head] += this.directionX;
-//     this.coordsY[this.head] += this.directionY;
-//     this.head += 1;
-
-//     if (grow) {
-//       this.length += 1;
-//     } else {
-//       this.tail += 1;
-//     }
-
-//     if (this.head == QUEUE_CAPACITY) {
-//       this.head = 0;
-//     }
-//     if (this.tail == QUEUE_CAPACITY) {
-//       this.tail = 0;
-//     }
-//   }
-
-//   turn(dirX, dirY) {
-//     if (dirX && !this.directionX) {
-//       this.directionX = dirX;
-//       this.directionY = 0;
-//     } else if (dirY && !this.directionY) {
-//       this.directionY = dirY;
-//       this.directionX = 0
-//     }
-//   }
-
-//   isAlive() {
-//     return this.withinBounds() && this.noCollision();
-//   }
-
-//   withinBounds() {
-//     const x = this.x(), y = this.y();
-//     return x < FIELD_WIDTH && x >= 0 && y < FIELD_HEIGHT && y >= 0;
-//   }
-
-//   noCollision(x = this.x(), y = this.y(), includeHead) {
-//     const upperBound = includeHead ? this.head : this.head - 1;
-//     if (this.head > this.tail) {
-//       for (let i = this.tail; i < upperBound; i++) {
-//         if (this.coordsX[i] == x && this.coordsY[i] == y) return false;
-//       }
-
-//     } else {
-//       for (let i = this.tail; i < QUEUE_CAPACITY; i++) {
-//         if (this.coordsX[i] == x && this.coordsY[i] == y) return false;
-//       }
-//       for (let i = 0; i < upperBound; i++) {
-//         if (this.coordsX[i] == x && this.coordsY[i] == y) return false;
-//       }
-//     }
-
-//     return true;
-//   }
-// }
-
-
-// function getRandomDirection() {
-//   const x = Math.random() > 0.5 ? Math.random() > 0.5 ? 1 : -1 : 0;
-//   const y = x ? 0 : Math.random() > 0.5 ? 1 : -1;
-//   return [x, y];
-// }
+function getRandomDirection() {
+  const x = Math.random() > 0.5 ? Math.random() > 0.5 ? 1 : -1 : 0;
+  const y = x ? 0 : Math.random() > 0.5 ? 1 : -1;
+  return [x, y];
+}
 
 
 // function devRender(snake) {
