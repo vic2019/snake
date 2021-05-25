@@ -1,9 +1,8 @@
 // "use strict";
 
 const UNIT = 10;
-const FIELD_WIDTH = 25;
-const FIELD_HEIGHT = 25;
-// const MAX_LENGTH = 3;
+const FIELD_WIDTH = 10;
+const FIELD_HEIGHT = 6;
 const MAX_LENGTH = FIELD_WIDTH * FIELD_HEIGHT;
 const START_X = Math.floor(FIELD_WIDTH / 2);
 const START_Y = Math.floor(FIELD_HEIGHT / 2);
@@ -14,7 +13,7 @@ const RIGHT = 1;
 
 // const view = document.getElementById('field');
 
-class Coordinates extends Array {
+class CoordinateQueue extends Array {
   constructor() {
     super();
     this._head = this._tail = 0;
@@ -86,16 +85,36 @@ class Coordinates extends Array {
     }
     return false;
   }
+
+  [Symbol.iterator]() {
+    const loopedBack = this._loopedBack;
+    const bound1 = loopedBack ? MAX_LENGTH : this._head;
+    const bound2 = this._head;
+    let bound = bound1;
+    let i = this._tail;
+
+    const next = () => {
+      if (loopedBack && i == MAX_LNGTH) {
+        i = 0;
+        bound = bound2;
+      }
+      return { 
+        value: this.index(i), 
+        done: i++ == bound 
+      };
+    };
+    return { next };
+  }
 }
 
 
-class Snake {
+class Snake extends CoordinateQueue{
   constructor() {
-    this.coords = new Coordinates();
+    super();
     const direction = getRandomDirection();
     this.directionX = direction[0];
     this.directionY = direction[1];
-    this.coords.push(START_X, START_Y);
+    this.push(START_X, START_Y);
   }
 
   turn(dirX, dirY) {
@@ -109,24 +128,30 @@ class Snake {
   }
 
   walk(grow = false) {
-    this.coords.push(
-      this.coords.x() + this.directionX,
-      this.coords.y() + this.directionY
+    this.push(
+      this.x() + this.directionX,
+      this.y() + this.directionY
     );
     if (grow) return;
 
-    this.coords.shift();
+    this.shift();
     return;
   }
 
   isAlive() {
-    const x = this.coords.x(),
-          y = this.coords.y();
+    const x = this.x(),
+          y = this.y();
     return x >= 0 && 
       x < FIELD_WIDTH && 
       y >= 0 && 
       y < FIELD_HEIGHT && 
       !this.find()
+  }
+
+  getRandomDirection() {
+    const x = Math.random() > 0.5 ? Math.random() > 0.5 ? 1 : -1 : 0;
+    const y = x ? 0 : Math.random() > 0.5 ? 1 : -1;
+    return [x, y];
   }
 }
 
@@ -138,44 +163,35 @@ function getRandomDirection() {
 }
 
 
-// function devRender(snake) {
-//   const field = new Array(FIELD_HEIGHT);
-//   for (let i = 0; i < FIELD_WIDTH; i++) {
-//     field[i] = new Array(FIELD_WIDTH);
-//   }
+function devRender(snake) {
+  const field = new Array(FIELD_HEIGHT);
+  for (let i = 0; i < FIELD_WIDTH; i++) {
+    field[i] = new Array(FIELD_WIDTH).fill('.');
+  }
 
-//   if (snake.head > snake.tail) {
-//     for (let i = snake.tail; i < snake.head - 1; i++) {
-//       field[ snake.coordsY[i] ][ snake.coordsX[i] ] = 'X';
-//     }
+  let count = 0;
+  for (const { x, y } of snake) {
+    if (x < 0 || y < 0) continue;
+    field[y][x] = String(count++ % 10);
+  }
 
-//   } else {
-//     for (let i = snake.tail; i < QUEUE_CAPACITY; i++) {
-//       field[ snake.coordsY[i] ][ snake.coordsX[i] ] = 'X';
-//     }
-//     for (let i = 0; i < snake.head - 1; i++) {
-//       field[ snake.coordsY[i] ][ snake.coordsX[i] ] = 'X';
-//     }
-//   }
-
-//   for (let i = 0; i < FIELD_WIDTH; i++) {
-//     for (let j = 0; j < FIELD_HEIGHT; j++) {
-//       process.stdout.write(field[i][j] || '.');
-//     }
-//     process.stdout.write('\n');
-//   }
-// }
+  for (let i = 0; i < FIELD_HEIGHT; i++) {
+    for (let j = 0; j < FIELD_WIDTH; j++) {
+      process.stdout.write(field[i][j]);
+    }
+    process.stdout.write('\n');
+  }
+}
 
 
-// const snake = new Snake();
-// snake.walk();
-// snake.walk();
-// snake.walk();
-// snake.walk();
+let snake = new Snake();
 
-// // while (snake.isAlive()) {
-// //   snake.turn(...getRandomDirection());
-// //   snake.walk(true);
-// // }
+while (snake.isAlive() || (snake = new Snake())) {
+  devRender(snake);
+  console.log();
+  snake.turn(...getRandomDirection());
+  snake.walk(Math.random() > 0.5);
+}
   
-// devRender(snake);
+
+module.exports = Snake;
