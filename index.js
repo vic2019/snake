@@ -29,8 +29,8 @@ class CoordinateQueue extends Array {
     return this[i * 2 + 1];
   }
 
-  index(i) {
-    return { x: this.x(i), y: this.y(i) };
+  index(i = (this._head || MAX_LENGTH) - 1) {
+    return { x: this[i * 2], y: this[i * 2 + 1] };
   }
 
   get size() {
@@ -179,13 +179,19 @@ function devRender(snake) {
 
 
 let snake = new Snake();
-
-while (snake.isAlive() || (snake = new Snake())) {
+let count = 0;
+const startTime = new Date().getTime();
+while (
+  count++ < 5000 &&
+  ( snake.isAlive() || (snake = new Snake()) )
+) {
   devRender(snake);
   console.log();
   snake.turn(...Snake.getRandomDirection());
   snake.walk(Math.random() > 0.5);
 }
-  
+
+console.log(`Time: ${new Date().getTime() - startTime}`);
+
 
 module.exports = Snake;
