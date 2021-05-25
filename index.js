@@ -1,8 +1,8 @@
 // "use strict";
 
 const UNIT = 10;
-const FIELD_WIDTH = 10;
-const FIELD_HEIGHT = 6;
+const FIELD_WIDTH = 13;
+const FIELD_HEIGHT = 7;
 const MAX_LENGTH = FIELD_WIDTH * FIELD_HEIGHT;
 const START_X = Math.floor(FIELD_WIDTH / 2);
 const START_Y = Math.floor(FIELD_HEIGHT / 2);
@@ -10,6 +10,7 @@ const UP = -1;
 const DOWN = 1;
 const LEFT = -1;
 const RIGHT = 1;
+const NONE = 0;
 
 // const view = document.getElementById('field');
 
@@ -111,7 +112,7 @@ class CoordinateQueue extends Array {
 class Snake extends CoordinateQueue{
   constructor() {
     super();
-    const direction = getRandomDirection();
+    const direction = Snake.getRandomDirection();
     this.directionX = direction[0];
     this.directionY = direction[1];
     this.push(START_X, START_Y);
@@ -148,25 +149,18 @@ class Snake extends CoordinateQueue{
       !this.find()
   }
 
-  getRandomDirection() {
-    const x = Math.random() > 0.5 ? Math.random() > 0.5 ? 1 : -1 : 0;
-    const y = x ? 0 : Math.random() > 0.5 ? 1 : -1;
+  static getRandomDirection() {
+    const x = Math.random() > 0.5 ? Math.random() > 0.5 ? LEFT : RIGHT : NONE;
+    const y = x ? NONE : Math.random() > 0.5 ? UP : DOWN;
     return [x, y];
   }
-}
-
-
-function getRandomDirection() {
-  const x = Math.random() > 0.5 ? Math.random() > 0.5 ? 1 : -1 : 0;
-  const y = x ? 0 : Math.random() > 0.5 ? 1 : -1;
-  return [x, y];
 }
 
 
 function devRender(snake) {
   const field = new Array(FIELD_HEIGHT);
   for (let i = 0; i < FIELD_WIDTH; i++) {
-    field[i] = new Array(FIELD_WIDTH).fill('.');
+    field[i] = new Array(FIELD_WIDTH).fill('-');
   }
 
   let count = 0;
@@ -189,7 +183,7 @@ let snake = new Snake();
 while (snake.isAlive() || (snake = new Snake())) {
   devRender(snake);
   console.log();
-  snake.turn(...getRandomDirection());
+  snake.turn(...Snake.getRandomDirection());
   snake.walk(Math.random() > 0.5);
 }
   
