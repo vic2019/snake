@@ -15,7 +15,6 @@ const NONE = 0;
 
 
 class Node {
-  // static count = 0;
   constructor(x, y, prev = null, next = null) {
     this.x = x;
     this.y = y;
@@ -24,6 +23,8 @@ class Node {
     // this.id = Node.count++;
   }
 
+  // static count = 0;
+  
   moveTo(x, y) {
     this.x = x;
     this.y = y;
@@ -43,18 +44,19 @@ class Snake {
 
   index(i = 0) {
     let node = this.head;
-    for (let index = 0; node && index < i; index++) {
+    let index = 0;
+    for (; node && index < i; index++) {
       node = node.next;
     }
-    return index == i ? node : {};
+    return index == i ? node : null;
   }
 
   x(i) {
-    return i == undefined ? this.head.x : this.index(i).x;
+    return i == undefined ? this.head.x : (this.index(i) || {}).x;
   }
 
   y(i) {
-    return i == undefined ? this.head.y : this.index(i).y;
+    return i == undefined ? this.head.y : (this.index(i) || {}).y;
   }
 
   turn(dirX, dirY) {
@@ -94,23 +96,34 @@ class Snake {
     this.head = newHead; 
   }
 
-  isAlive() {
-    const head = this.head;
-    if (
-      head.x >= FIELD_WIDTH ||
-      head.x < 0 ||
-      head.y >= FIELD_HEIGHT ||
-      head.y < 0
-    ) return false;
-
-    let node = this.head.next;
+  find(x, y, i) {
+    let node = this.index(i);
     while (node != null) {
-      if (node.x == head.x && node.y == head.y) {
-        return false;
+      if (node.x == x && node.y == y) {
+        return true;
       }
       node = node.next;
     }
+    return false;
+  }
+
+  isAlive() {
+    const { x, y } = this.head;
+    if (
+      x >= FIELD_WIDTH ||
+      x < 0 ||
+      y >= FIELD_HEIGHT ||
+      y < 0
+    ) return false;
+
+    if (this.find(x, y, 1)) return false;
+
     return true;
+  }
+
+  ateFood(food) {
+    return this.head.x + this.directionX  == food.x && 
+      this.head.y + this.directionY == food.y;
   }
 
   [Symbol.iterator]() {
@@ -122,7 +135,7 @@ class Snake {
           x: (node || {}).x, 
           y: (node || {}).y 
         },
-        done: !Boolean(node)
+        done: node == null
       };
     }
     return { next };
@@ -136,7 +149,25 @@ class Snake {
 }
 
 
-function devRender(snake) {
+class Game {
+  constructor() {
+    this.snake = new Snake();
+    this.food = this.makeFood(this.snake);
+  }
+
+  makeFood() {
+    let x = Math.floor(Math.random() * FIELD_WIDTH),
+        y = Math.floor(Math.random() * FIELD_HEIGHT);
+    while (this.snake.find(x, y, 0)) {
+      x = Math.floor(Math.random() * FIELD_WIDTH);
+      y = Math.floor(Math.random() * FIELD_HEIGHT);
+    }
+    return { x, y };
+  }
+}
+
+
+function devRender({ snake, food }) {
   const field = new Array(FIELD_HEIGHT);
   for (let i = 0; i < FIELD_WIDTH; i++) {
     field[i] = new Array(FIELD_WIDTH).fill('-');
@@ -148,6 +179,8 @@ function devRender(snake) {
     field[y][x] = String(i++ % 10);    
   }
 
+  field[food.y][food.x] = '$';
+
   for (let i = 0; i < FIELD_HEIGHT; i++) {
     for (let j = 0; j < FIELD_WIDTH; j++) {
       process.stdout.write(field[i][j]);
@@ -157,17 +190,16 @@ function devRender(snake) {
 }
 
 
-let snake = new Snake();
-let count = 0;
+let game = new Game();
 const startTime = new Date().getTime();
 while (
-  count++ < 5000 && 
-  ( snake.isAlive() || (snake = new Snake()) )
+  game.snake.isAlive()
 ) {
-  devRender(snake);
+  devRender(game);
   console.log();
-  snake.turn(...Snake.getRandomDirection());
-  snake.walk(Math.random() > 0.5);
+  game.snake.turn(...Snake.getRandomDirection());
+  game.snake.walk(Math.random() > 0.5);
+  game.makeFood();
 }
 
 console.log(`Time: ${new Date().getTime() - startTime}`);
