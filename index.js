@@ -1,14 +1,15 @@
 // "use strict";
 
 const U = 10;
-const FIELD_WIDTH = 40;
-const FIELD_HEIGHT = 40;
+const FIELD_WIDTH = 13;
+const FIELD_HEIGHT = 7;
 const START_X = Math.floor(FIELD_WIDTH / 2);
 const START_Y = Math.floor(FIELD_HEIGHT / 2);
 const UP = -1;
 const DOWN = 1;
 const LEFT = -1;
 const RIGHT = 1;
+const NONE = 0;
 
 // const view = document.getElementById('field');
 
@@ -31,13 +32,29 @@ class Node {
 
 
 class Snake {
-  constructor(x = START_X, y = START_Y) {
-    this.head = new Node(x, y);
+  constructor() {
+    this.head = new Node(START_X, START_Y);
     this.tail = this.head;
     this.length = 1;
-    const direction = getRandomDirection();
+    const direction = Snake.getRandomDirection();
     this.directionX = direction[0];
     this.directionY = direction[1];
+  }
+
+  index(i = 0) {
+    let node = this.head;
+    for (let index = 0; node && index < i; index++) {
+      node = node.next;
+    }
+    return index == i ? node : {};
+  }
+
+  x(i) {
+    return i == undefined ? this.head.x : this.index(i).x;
+  }
+
+  y(i) {
+    return i == undefined ? this.head.y : this.index(i).y;
   }
 
   turn(dirX, dirY) {
@@ -50,8 +67,18 @@ class Snake {
     }
   }
 
-  /* May lengthen only before walk */
-  walk() {
+  walk(grow) {
+    if (grow) {
+      const newHead = new Node(
+        this.head.x + this.directionX, this.head.y + this.directionY
+      );
+      this.head.prev = newHead;
+      newHead.next = this.head;
+      this.head = newHead;
+      this.length += 1;
+      return;
+    }
+
     const newHead = this.tail;
     if (this.length > 1) {
       this.tail = newHead.prev;
@@ -61,17 +88,10 @@ class Snake {
       newHead.next = this.head;
     }
 
-    /* Reassign this.head only after moving newHead to allow accessing the old head's coordinates */
+    /* Reassign this.head only after moving newHead to 
+      allow accessing the old head's coordinates */
     newHead.moveTo(this.head.x + this.directionX, this.head.y + this.directionY);
     this.head = newHead; 
-  }
-
-  /* May lengthen only before walk */
-  lengthen() {
-    const newTail = new Node(this.tail.x, this.tail.y, this.tail, null);
-    this.tail.next = newTail;
-    this.tail = newTail;
-    this.length += 1;
   }
 
   isAlive() {
@@ -93,67 +113,65 @@ class Snake {
     return true;
   }
 
-  print() {
-    let node = this.head;
-    while(node != null) {
-      console.log(`${node.id}:`, node.x, node.y);
-      node = node.next;
+  [Symbol.iterator]() {
+    let node = { prev: this.tail };
+    const next = () => {
+      node = node.prev;
+      return {
+        value: { 
+          x: (node || {}).x, 
+          y: (node || {}).y 
+        },
+        done: !Boolean(node)
+      };
     }
-    console.log(
-      `---- Head: ${this.head.id} (${this.head.x}, ${this.head.y})`,  
-      `Tail: ${this.tail.id} (${this.tail.x}, ${this.tail.y})`,  
-      `Direction: (${this.directionX}, ${this.directionY})`,  
-      `Length: ${this.length} ----`
-    );
+    return { next };
   }
-}
 
-
-function getRandomDirection() {
-  const x = Math.random() > 0.5 ? Math.random() > 0.5 ? 1 : -1 : 0;
-  const y = x ? 0 : Math.random() > 0.5 ? 1 : -1;
-  return [x, y];
+  static getRandomDirection() {
+    const x = Math.random() > 0.5 ? Math.random() > 0.5 ? LEFT : RIGHT : NONE;
+    const y = x ? NONE : Math.random() > 0.5 ? UP : DOWN;
+    return [x, y];
+  }
 }
 
 
 function devRender(snake) {
   const field = new Array(FIELD_HEIGHT);
   for (let i = 0; i < FIELD_WIDTH; i++) {
-    field[i] = new Array(FIELD_WIDTH);
+    field[i] = new Array(FIELD_WIDTH).fill('-');
   }
 
-  let node = snake.head;
   let i = 0;
-  while(node != null) {
-    if (
-      node.x >= FIELD_WIDTH ||
-      node.x < 0 ||
-      node.y >= FIELD_HEIGHT ||
-      node.y < 0
-    ) {
-      node = node.next;
-      continue;
-    };
-    field[node.y][node.x] = i++;
-    node = node.next;
+  for (const {x, y} of snake) {
+    if (x < 0 || y < 0) continue;
+    field[y][x] = String(i++ % 10);    
   }
 
-  for (let i = 0; i < FIELD_WIDTH; i++) {
-    for (let j = 0; j < FIELD_HEIGHT; j++) {
-      process.stdout.write(String(field[i][j] % 9 + 1 || '.'));
+  for (let i = 0; i < FIELD_HEIGHT; i++) {
+    for (let j = 0; j < FIELD_WIDTH; j++) {
+      process.stdout.write(field[i][j]);
     }
     process.stdout.write('\n');
   }
 }
 
 
-const snake = new Snake();
-
-while (snake.isAlive()) {
-  // snake.print();
-  snake.turn(...getRandomDirection());
-  snake.lengthen();
-  snake.walk();
+let snake = new Snake();
+let count = 0;
+const startTime = new Date().getTime();
+while (
+  count++ < 2000 && 
+  ( snake.isAlive() || (snake = new Snake()) )
+) {
+  devRender(snake);
+  console.log();
+  snake.turn(...Snake.getRandomDirection());
+  snake.walk(Math.random() > 0.5);
 }
 
-devRender(snake);
+console.log(`Time: ${new Date().getTime() - startTime}`);
+
+
+module.exports = Snake;
+
