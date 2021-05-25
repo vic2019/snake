@@ -161,7 +161,7 @@ let snake = new Snake();
 let count = 0;
 const startTime = new Date().getTime();
 while (
-  count++ < 2000 && 
+  count++ < 5000 && 
   ( snake.isAlive() || (snake = new Snake()) )
 ) {
   devRender(snake);
