@@ -15,13 +15,13 @@ const NONE = 0;
 
 
 class Node {
-  static count = 0;
+  // static count = 0;
   constructor(x, y, prev = null, next = null) {
     this.x = x;
     this.y = y;
     this.prev = prev;
     this.next = next;
-    this.id = Node.count++;
+    // this.id = Node.count++;
   }
 
   moveTo(x, y) {
