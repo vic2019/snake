@@ -1,21 +1,28 @@
 // "use strict";
 
 const U = 10;
-const FIELD_WIDTH = 13;
-const FIELD_HEIGHT = 7;
+const FIELD_WIDTH = 21;
+const FIELD_HEIGHT = 11;
 const START_X = Math.floor(FIELD_WIDTH / 2);
 const START_Y = Math.floor(FIELD_HEIGHT / 2);
-const UP = -1;
-const DOWN = 1;
-const LEFT = -1;
-const RIGHT = 1;
-const NONE = 0;
+const DIRECTION = {
+  UP: { x: 0, y: -1 },
+  DOWN: { x: 0, y: 1 },
+  LEFT: { x: -1, y: 0 },
+  RIGHT: { x: 1, y: 0 },
+  NONE: { x: 0, y: 0 },
+};
+const FRAMERATE_0 = 800;
+const FRAMERATE_1 = 700;
+const FRAMERATE_2 = 550;
+const FRAMERATE_3 = 400;
+const FRAMERATE_4 = 300;
 
 // const view = document.getElementById('field');
 
 
 class Node {
-  constructor(x, y, prev = null, next = null) {
+  constructor({ x, y, prev = null, next = null }) {
     this.x = x;
     this.y = y;
     this.prev = prev;
@@ -25,7 +32,7 @@ class Node {
 
   // static count = 0;
   
-  moveTo(x, y) {
+  moveTo({ x, y }) {
     this.x = x;
     this.y = y;
   }
@@ -34,12 +41,10 @@ class Node {
 
 class Snake {
   constructor() {
-    this.head = new Node(START_X, START_Y);
+    this.head = new Node({ x: START_X, y: START_Y });
     this.tail = this.head;
     this.length = 1;
-    const direction = Snake.getRandomDirection();
-    this.directionX = direction[0];
-    this.directionY = direction[1];
+    this.direction = Snake.getRandomDirection();
   }
 
   index(i = 0) {
@@ -59,21 +64,26 @@ class Snake {
     return i == undefined ? this.head.y : (this.index(i) || {}).y;
   }
 
-  turn(dirX, dirY) {
-    if (dirX && !this.directionX) {
-      this.directionX = dirX;
-      this.directionY = 0;
-    } else if (dirY && !this.directionY) {
-      this.directionY = dirY;
-      this.directionX = 0
+  turn(direction) {
+    switch (this.direction) {
+      case DIRECTION.UP:
+      case DIRECTION.DOWN:
+        if (direction == DIRECTION.LEFT || direction == DIRECTION.RIGHT) {
+          this.direction = direction;
+        }
+        return;
+      case DIRECTION.LEFT:
+      case DIRECTION.RIGHT:
+        if (direction == DIRECTION.UP || direction == DIRECTION.DOWN) {
+          this.direction = direction;
+        }
+        return;
     }
   }
 
   walk(grow) {
     if (grow) {
-      const newHead = new Node(
-        this.head.x + this.directionX, this.head.y + this.directionY
-      );
+      const newHead = new Node(Snake.getNextPosition(this.head, this.direction));
       this.head.prev = newHead;
       newHead.next = this.head;
       this.head = newHead;
@@ -92,7 +102,7 @@ class Snake {
 
     /* Reassign this.head only after moving newHead to 
       allow accessing the old head's coordinates */
-    newHead.moveTo(this.head.x + this.directionX, this.head.y + this.directionY);
+    newHead.moveTo(Snake.getNextPosition(this.head, this.direction));
     this.head = newHead; 
   }
 
@@ -105,25 +115,6 @@ class Snake {
       node = node.next;
     }
     return false;
-  }
-
-  isAlive() {
-    const { x, y } = this.head;
-    if (
-      x >= FIELD_WIDTH ||
-      x < 0 ||
-      y >= FIELD_HEIGHT ||
-      y < 0
-    ) return false;
-
-    if (this.find(x, y, 1)) return false;
-
-    return true;
-  }
-
-  ateFood(food) {
-    return this.head.x + this.directionX  == food.x && 
-      this.head.y + this.directionY == food.y;
   }
 
   [Symbol.iterator]() {
@@ -141,10 +132,34 @@ class Snake {
     return { next };
   }
 
+  static getNextPosition(node, step) {
+    return {
+      x: node.x + step.x,
+      y: node.y + step.y
+    };
+  }
+
   static getRandomDirection() {
-    const x = Math.random() > 0.5 ? Math.random() > 0.5 ? LEFT : RIGHT : NONE;
-    const y = x ? NONE : Math.random() > 0.5 ? UP : DOWN;
-    return [x, y];
+    switch (Math.floor(Math.random() * 4)) {
+      case 0: return DIRECTION.UP;
+      case 1: return DIRECTION.DOWN;
+      case 2: return DIRECTION.LEFT;
+      case 3: return DIRECTION.RIGHT;
+    }
+  }
+}
+
+
+class Food {
+  constructor(snake) {
+    let x = Math.floor(Math.random() * FIELD_WIDTH),
+        y = Math.floor(Math.random() * FIELD_HEIGHT);
+    while (snake.find(x, y, 0)) {
+      x = Math.floor(Math.random() * FIELD_WIDTH);
+      y = Math.floor(Math.random() * FIELD_HEIGHT);
+    }
+    this.x = x;
+    this.y = y;
   }
 }
 
@@ -152,22 +167,69 @@ class Snake {
 class Game {
   constructor() {
     this.snake = new Snake();
-    this.food = this.makeFood(this.snake);
+    this.food = new Food(this.snake);
+    this.noFood = false;
   }
 
-  makeFood() {
-    let x = Math.floor(Math.random() * FIELD_WIDTH),
-        y = Math.floor(Math.random() * FIELD_HEIGHT);
-    while (this.snake.find(x, y, 0)) {
-      x = Math.floor(Math.random() * FIELD_WIDTH);
-      y = Math.floor(Math.random() * FIELD_HEIGHT);
+  snakeIsAlive() {
+    const { x, y } = this.snake.head;
+    if (
+      x >= FIELD_WIDTH ||
+      x < 0 ||
+      y >= FIELD_HEIGHT ||
+      y < 0
+    ) return false;
+
+    if (this.snake.find(x, y, 1)) return false;
+
+    return true;
+  }
+
+  foodIsEaten() {
+    const nextPosition = Snake.getNextPosition(this.snake.head, this.snake.direction);
+    return this.noFood = nextPosition.x  == this.food.x && nextPosition.y == this.food.y;
+  }
+
+  checkAndReplaceFood() {
+    if (this.noFood) this.food = new Food(this.snake);
+  }
+
+  getHandlers() {
+    return {
+      up: () => this.snake.turn(DIRECTION.UP),
+      down: () => this.snake.turn(DIRECTION.DOWN),
+      left: () => this.snake.turn(DIRECTION.LEFT),
+      right: () => this.snake.turn(DIRECTION.RIGHT)  
+    };
+  }
+
+  getFramerate() {
+    if (this.snake.length < 4) return FRAMERATE_0;
+    if (this.snake.length < 8) return FRAMERATE_1;
+    if (this.snake.length < 12) return FRAMERATE_2;
+    if (this.snake.length < 24) return FRAMERATE_3;
+    return FRAMERATE_4;
+  }
+
+  async start() {
+    while (this.snakeIsAlive()) {
+      // this.snake.turn(Snake.getRandomDirection());
+      this.snake.walk(this.foodIsEaten());
+      this.checkAndReplaceFood();
+      consoleRender(this);
+      await sleep(this.getFramerate());
+      console.clear();
     }
-    return { x, y };
   }
 }
 
 
-function devRender({ snake, food }) {
+function sleep(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+} 
+
+
+function consoleRender({ snake, food }) {
   const field = new Array(FIELD_HEIGHT);
   for (let i = 0; i < FIELD_WIDTH; i++) {
     field[i] = new Array(FIELD_WIDTH).fill('-');
@@ -190,19 +252,31 @@ function devRender({ snake, food }) {
 }
 
 
-let game = new Game();
-const startTime = new Date().getTime();
-while (
-  game.snake.isAlive()
-) {
-  devRender(game);
-  console.log();
-  game.snake.turn(...Snake.getRandomDirection());
-  game.snake.walk(Math.random() > 0.5);
-  game.makeFood();
-}
+// const startTime = new Date().getTime();
 
-console.log(`Time: ${new Date().getTime() - startTime}`);
+const game = new Game();
+const { up, down, left, right } = game.getHandlers();
+
+const readline = require('readline');
+readline.emitKeypressEvents(process.stdin);
+process.stdin.setRawMode(true);
+process.stdin.on('keypress', (_, key) => {
+  switch (key.name) {
+    case 'up': return up();
+    case 'down': return down();
+    case 'left': return left();
+    case 'right': return right();
+    case 'escape': 
+      return process.exit();
+    case 'c': 
+      if (key.ctrl) return process.exit();
+      return;
+  }
+});
+
+game.start();
+
+// console.log(`Time: ${new Date().getTime() - startTime}`);
 
 
 module.exports = Snake;
