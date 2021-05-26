@@ -55,14 +55,6 @@ class Snake {
     return index == i ? node : null;
   }
 
-  x(i) {
-    return i == undefined ? this.head.x : (this.index(i) || {}).x;
-  }
-
-  y(i) {
-    return i == undefined ? this.head.y : (this.index(i) || {}).y;
-  }
-
   turn(direction) {
     if (this.lock) return;
 
@@ -174,7 +166,11 @@ class Game {
     this.snake = new Snake();
     this.food = new Food(this.snake);
     this.noFood = false;
-    this.score = 0;
+    this.controller = new Controller();
+  }
+
+  get score() {
+    return this.snake.length - 1;
   }
 
   snakeIsAlive() {
@@ -198,7 +194,6 @@ class Game {
 
   checkAndReplaceFood() {
     if (this.noFood) {
-      this.score += 1;
       this.food = new Food(this.snake);
     }
   }
@@ -220,11 +215,14 @@ class Game {
     return FRAMERATE_4;
   }
 
+  setHandlers() {
+    this.controller.reset(this.getHandlers());
+  }
+
   async start() {
     while (this.snakeIsAlive()) {      
       /* Must follow this order: render -> sleep -> clear -> update data  */
       console.clear();
-      /* this.snake.turn(Snake.getRandomDirection()); // Play by itself */
       this.snake.walk(this.foodIsEaten());
       this.checkAndReplaceFood();
       consoleRender(this);
@@ -252,15 +250,13 @@ function consoleRender(game) {
     field[i] = new Array(FIELD_WIDTH).fill('-');
   }
 
-  const length = snake.length;
-  const { x, y } = snake.index(0);
-  if (bounded(x, y)) field[y][x] = String('O');
-  for (let i = 1; i < length; i++) {
-    const { x, y } = snake.index(i);
+  field[food.y][food.x] = 'o';
+  for (const { x, y } of snake) {
     if (bounded(x, y)) field[y][x] = String('U');
   }
+  const { x, y } = snake.head;
+  if (bounded(x, y)) field[y][x] = String('O');
 
-  field[food.y][food.x] = 'o';
 
   for (let i = 0; i < FIELD_HEIGHT; i++) {
     for (let j = 0; j < FIELD_WIDTH; j++) {
@@ -272,26 +268,32 @@ function consoleRender(game) {
 }
 
 
-const game = new Game();
-const { up, down, left, right } = game.getHandlers();
-
-const readline = require('readline');
-readline.emitKeypressEvents(process.stdin);
-process.stdin.setRawMode(true);
-process.stdin.on('keypress', (_, key) => {
-  switch (key.sequence) {
-    case '\x1B[A': return up();
-    case '\x1B[B': return down();
-    case '\x1B[D': return left();
-    case '\x1B[C': return right();
-    case '\x1B': 
-      return process.exit();
-    case 'c': 
-      if (key.ctrl) return process.exit();
-      return;
+class Controller {
+  constructor(handlers) {
+    const readline = require('readline');
+    readline.emitKeypressEvents(process.stdin);
+    process.stdin.setRawMode(true);
+    if (handlers) this.reset(handlers);
   }
-});
 
+  reset({ up, down, left, right }) {
+    process.stdin.on('keypress', (_, key) => {
+      switch (key.name) {
+        case 'up': return up();
+        case 'down': return down();
+        case 'left': return left();
+        case 'right': return right();
+        case 'escape': 
+          return process.exit();
+        case 'c': 
+          if (key.ctrl) return process.exit();
+          return;
+      }
+    });
+  }
+}
+
+
+const game = new Game();
+game.setHandlers();
 game.start();
-
-
