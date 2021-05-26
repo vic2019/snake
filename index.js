@@ -279,12 +279,12 @@ const readline = require('readline');
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
 process.stdin.on('keypress', (_, key) => {
-  switch (key.name) {
-    case 'up': return up();
-    case 'down': return down();
-    case 'left': return left();
-    case 'right': return right();
-    case 'escape': 
+  switch (key.sequence) {
+    case '\x1B[A': return up();
+    case '\x1B[B': return down();
+    case '\x1B[D': return left();
+    case '\x1B[C': return right();
+    case '\x1B': 
       return process.exit();
     case 'c': 
       if (key.ctrl) return process.exit();
