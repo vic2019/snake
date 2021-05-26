@@ -1,0 +1,50 @@
+:root {
+  --unit: 12px;
+  --field-height: calc(var(--unit) * 15);
+  --field-width: calc(var(--unit) * 15);
+  --bs-font-sans-serif: 'Ubuntu Mono', monospace;
+}
+
+#field {
+  border: calc(var(--unit) / 2.5) solid rgb(55, 55, 55); 
+  padding: calc(var(--unit) / 2);
+  border-radius: calc(var(--unit) / 2);
+  height: var(--field-height);
+  width: var(--field-width);
+}
+
+#start {
+  width: 4.3rem;
+  height: 4.3rem;
+  margin-left: 0.8rem;
+}
+
+.arrow-buttons {
+  padding-left: 5rem;
+}
+
+.arrow-buttons button {
+  width: 5rem;
+  margin: 0.2rem 0.3rem;
+}
+
+#up {
+  border-top-left-radius: 1.6rem;
+  border-top-right-radius: 1.6rem;
+}
+
+#down {
+  border-bottom-left-radius: 1.6rem;
+  border-bottom-right-radius: 1.6rem;
+}
+
+#left {
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+}
+
+#right {
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
