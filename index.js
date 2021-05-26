@@ -1,8 +1,6 @@
-// "use strict";
-
-const U = 10;
-const FIELD_WIDTH = 21;
-const FIELD_HEIGHT = 11;
+// const U = 10;
+const FIELD_WIDTH = 17;
+const FIELD_HEIGHT = 9;
 const START_X = Math.floor(FIELD_WIDTH / 2);
 const START_Y = Math.floor(FIELD_HEIGHT / 2);
 const DIRECTION = {
@@ -13,8 +11,8 @@ const DIRECTION = {
   NONE: { x: 0, y: 0 },
 };
 const FRAMERATE_0 = 800;
-const FRAMERATE_1 = 700;
-const FRAMERATE_2 = 550;
+const FRAMERATE_1 = 650;
+const FRAMERATE_2 = 500;
 const FRAMERATE_3 = 400;
 const FRAMERATE_4 = 300;
 
@@ -27,10 +25,10 @@ class Node {
     this.y = y;
     this.prev = prev;
     this.next = next;
-    // this.id = Node.count++;
+    /* this.id = Node.count++; */
   }
 
-  // static count = 0;
+  /* static count = 0; */
   
   moveTo({ x, y }) {
     this.x = x;
@@ -169,6 +167,7 @@ class Game {
     this.snake = new Snake();
     this.food = new Food(this.snake);
     this.noFood = false;
+    this.score = 0;
   }
 
   snakeIsAlive() {
@@ -191,7 +190,10 @@ class Game {
   }
 
   checkAndReplaceFood() {
-    if (this.noFood) this.food = new Food(this.snake);
+    if (this.noFood) {
+      this.score += 1;
+      this.food = new Food(this.snake);
+    }
   }
 
   getHandlers() {
@@ -207,19 +209,22 @@ class Game {
     if (this.snake.length < 4) return FRAMERATE_0;
     if (this.snake.length < 8) return FRAMERATE_1;
     if (this.snake.length < 12) return FRAMERATE_2;
-    if (this.snake.length < 24) return FRAMERATE_3;
+    if (this.snake.length < 20) return FRAMERATE_3;
     return FRAMERATE_4;
   }
 
   async start() {
-    while (this.snakeIsAlive()) {
-      // this.snake.turn(Snake.getRandomDirection());
+    while (this.snakeIsAlive()) {      
+      /* Must follow this order: render -> sleep -> clear -> update data  */
+      console.clear();
+      /* this.snake.turn(Snake.getRandomDirection()); // Play by itself */
       this.snake.walk(this.foodIsEaten());
       this.checkAndReplaceFood();
       consoleRender(this);
       await sleep(this.getFramerate());
-      console.clear();
     }
+    console.log('Game Over');
+    console.log('Press Ctrl + C or Esc to exit.\n');
   }
 }
 
@@ -229,19 +234,21 @@ function sleep(time) {
 } 
 
 
-function consoleRender({ snake, food }) {
+function consoleRender(game) {
+  const { snake, food } = game;
   const field = new Array(FIELD_HEIGHT);
   for (let i = 0; i < FIELD_WIDTH; i++) {
     field[i] = new Array(FIELD_WIDTH).fill('-');
   }
 
-  let i = 0;
+  /* let i = 0; // For debugging */
   for (const {x, y} of snake) {
     if (x < 0 || y < 0) continue;
-    field[y][x] = String(i++ % 10);    
+    /* field[y][x] = String(i++ % 10); // For debugging */
+    field[y][x] = String('#');    
   }
 
-  field[food.y][food.x] = '$';
+  field[food.y][food.x] = 'o';
 
   for (let i = 0; i < FIELD_HEIGHT; i++) {
     for (let j = 0; j < FIELD_WIDTH; j++) {
@@ -249,6 +256,7 @@ function consoleRender({ snake, food }) {
     }
     process.stdout.write('\n');
   }
+  process.stdout.write(`Score: ${game.score}\n\n`);
 }
 
 
@@ -278,6 +286,5 @@ game.start();
 
 // console.log(`Time: ${new Date().getTime() - startTime}`);
 
-
-module.exports = Snake;
+// module.exports = Snake;
 
