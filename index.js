@@ -1,24 +1,3 @@
-// const U = 10;
-const FIELD_WIDTH = 17;
-const FIELD_HEIGHT = 9;
-const START_X = Math.floor(FIELD_WIDTH / 2);
-const START_Y = Math.floor(FIELD_HEIGHT / 2);
-const DIRECTION = {
-  UP: { x: 0, y: -1 },
-  DOWN: { x: 0, y: 1 },
-  LEFT: { x: -1, y: 0 },
-  RIGHT: { x: 1, y: 0 },
-  NONE: { x: 0, y: 0 },
-};
-const FRAMERATE_0 = 700;
-const FRAMERATE_1 = 600;
-const FRAMERATE_2 = 500;
-const FRAMERATE_3 = 400;
-const FRAMERATE_4 = 300;
-
-// const view = document.getElementById('field');
-
-
 class Node {
   constructor({ x, y, prev = null, next = null }) {
     this.x = x;
@@ -167,6 +146,7 @@ class Game {
     this.food = new Food(this.snake);
     this.noFood = false;
     this.controller = new Controller();
+    this.killed = false;
   }
 
   get score() {
@@ -203,7 +183,8 @@ class Game {
       up: () => this.snake.turn(DIRECTION.UP),
       down: () => this.snake.turn(DIRECTION.DOWN),
       left: () => this.snake.turn(DIRECTION.LEFT),
-      right: () => this.snake.turn(DIRECTION.RIGHT)  
+      right: () => this.snake.turn(DIRECTION.RIGHT),
+      kill: () => this.killed = true
     };
   }
 
@@ -216,12 +197,17 @@ class Game {
   }
 
   setHandlers() {
-    this.controller.reset(this.getHandlers());
+    this.controller.set(this.getHandlers());
+  }
+
+  removeHandlers() {
+    this.controller.removeHandlers();
   }
 
   async start() {
-    while (this.snakeIsAlive()) {      
+    while (this.snakeIsAlive()) {    
       /* Must follow this order: render -> sleep -> clear -> update data  */
+      if (this.killed) break;
       console.clear();
       this.snake.walk(this.foodIsEaten());
       this.checkAndReplaceFood();
@@ -238,10 +224,12 @@ function sleep(time) {
   return new Promise(resolve => setTimeout(resolve, time));
 } 
 
+
 function bounded(x, y) {
   return x >= 0 && x < FIELD_WIDTH &&
     y >= 0 && y < FIELD_HEIGHT;
 }
+
 
 function consoleRender(game) {
   const { snake, food } = game;
@@ -257,43 +245,84 @@ function consoleRender(game) {
   const { x, y } = snake.head;
   if (bounded(x, y)) field[y][x] = String('O');
 
-
+  let output = '';
   for (let i = 0; i < FIELD_HEIGHT; i++) {
     for (let j = 0; j < FIELD_WIDTH; j++) {
-      process.stdout.write(field[i][j]);
+      output += field[i][j];
     }
-    process.stdout.write('\n');
+    output += ('\n');
   }
-  process.stdout.write(`Score: ${game.score}\n\n`);
+  output += `Score: ${game.score}\n\n`;
+  console.log(output);
 }
 
 
 class Controller {
-  constructor(handlers) {
-    const readline = require('readline');
-    readline.emitKeypressEvents(process.stdin);
-    process.stdin.setRawMode(true);
-    if (handlers) this.reset(handlers);
+  constructor() {
+    this.upBtn = document.getElementById('up');
+    this.downBtn = document.getElementById('down');
+    this.leftBtn = document.getElementById('left');
+    this.rightBtn = document.getElementById('right');
   }
 
-  reset({ up, down, left, right }) {
-    process.stdin.on('keypress', (_, key) => {
-      switch (key.name) {
-        case 'up': return up();
-        case 'down': return down();
-        case 'left': return left();
-        case 'right': return right();
-        case 'escape': 
-          return process.exit();
-        case 'c': 
-          if (key.ctrl) return process.exit();
-          return;
+  set({ up, down, left, right, kill }) {
+    this.upBtn.addEventListener('click', up);
+    this.downBtn.addEventListener('click', down);
+    this.leftBtn.addEventListener('click', left);
+    this.rightBtn.addEventListener('click', right);
+
+    const keys = event => {
+      switch (event.keyCode) {
+        case 37: return left();
+        case 38: return up();
+        case 39: return right();
+        case 40: return down();
+        case 27: return kill();
       }
-    });
+    };
+    document.addEventListener('keydown', keys);
+
+    this.up = up;
+    this.down = down;
+    this.left = left;
+    this.right = right;
+    this.keys = keys;
+  }
+
+  removeHandlers() {
+    this.upBtn.removeEventListener('click', this.up);
+    this.downBtn.removeEventListener('click', this.down);
+    this.leftBtn.removeEventListener('click', this.left);
+    this.rightBtn.removeEventListener('click', this.right);
+    document.removeEventListener('keydown', this.keys);
   }
 }
 
 
-const game = new Game();
-game.setHandlers();
-game.start();
+function main() {
+  const play = async () => {
+    const game = new Game();
+    game.setHandlers();
+    togglePlayBtn();
+    await game.start();
+    game.removeHandlers();
+    togglePlayBtn();
+  }
+
+  const togglePlayBtn = () => {
+    if (playBtn.value == '...') {
+      playBtn.addEventListener('click', play);
+      playBtn.value = playBtn.textContent = 'play';
+    } else {
+      playBtn.removeEventListener('click', play);
+      playBtn.value = playBtn.textContent = '...';
+    }
+    playBtn.classList.toggle('btn-danger');
+  }
+
+  const playBtn = document.getElementById('play');
+  playBtn.addEventListener('click', play);
+}
+
+
+main();
