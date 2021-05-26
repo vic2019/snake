@@ -10,8 +10,8 @@ const DIRECTION = {
   RIGHT: { x: 1, y: 0 },
   NONE: { x: 0, y: 0 },
 };
-const FRAMERATE_0 = 800;
-const FRAMERATE_1 = 650;
+const FRAMERATE_0 = 700;
+const FRAMERATE_1 = 600;
 const FRAMERATE_2 = 500;
 const FRAMERATE_3 = 400;
 const FRAMERATE_4 = 300;
@@ -43,6 +43,7 @@ class Snake {
     this.tail = this.head;
     this.length = 1;
     this.direction = Snake.getRandomDirection();
+    this.lock = false;
   }
 
   index(i = 0) {
@@ -63,17 +64,21 @@ class Snake {
   }
 
   turn(direction) {
+    if (this.lock) return;
+
     switch (this.direction) {
       case DIRECTION.UP:
       case DIRECTION.DOWN:
         if (direction == DIRECTION.LEFT || direction == DIRECTION.RIGHT) {
           this.direction = direction;
+          this.lock = true;
         }
         return;
       case DIRECTION.LEFT:
       case DIRECTION.RIGHT:
         if (direction == DIRECTION.UP || direction == DIRECTION.DOWN) {
           this.direction = direction;
+          this.lock = true;
         }
         return;
     }
@@ -86,6 +91,7 @@ class Snake {
       newHead.next = this.head;
       this.head = newHead;
       this.length += 1;
+      this.lock = false;
       return;
     }
 
@@ -102,6 +108,7 @@ class Snake {
       allow accessing the old head's coordinates */
     newHead.moveTo(Snake.getNextPosition(this.head, this.direction));
     this.head = newHead; 
+    this.lock = false;
   }
 
   find(x, y, i) {
@@ -224,7 +231,7 @@ class Game {
       await sleep(this.getFramerate());
     }
     console.log('Game Over');
-    console.log('Press Ctrl + C or Esc to exit.\n');
+    console.log('Press Ctrl+C or Esc to exit.\n');
   }
 }
 
@@ -233,6 +240,10 @@ function sleep(time) {
   return new Promise(resolve => setTimeout(resolve, time));
 } 
 
+function bounded(x, y) {
+  return x >= 0 && x < FIELD_WIDTH &&
+    y >= 0 && y < FIELD_HEIGHT;
+}
 
 function consoleRender(game) {
   const { snake, food } = game;
@@ -241,11 +252,12 @@ function consoleRender(game) {
     field[i] = new Array(FIELD_WIDTH).fill('-');
   }
 
-  /* let i = 0; // For debugging */
-  for (const {x, y} of snake) {
-    if (x < 0 || y < 0) continue;
-    /* field[y][x] = String(i++ % 10); // For debugging */
-    field[y][x] = String('#');    
+  const length = snake.length;
+  const { x, y } = snake.index(0);
+  if (bounded(x, y)) field[y][x] = String('O');
+  for (let i = 1; i < length; i++) {
+    const { x, y } = snake.index(i);
+    if (bounded(x, y)) field[y][x] = String('U');
   }
 
   field[food.y][food.x] = 'o';
@@ -259,8 +271,6 @@ function consoleRender(game) {
   process.stdout.write(`Score: ${game.score}\n\n`);
 }
 
-
-// const startTime = new Date().getTime();
 
 const game = new Game();
 const { up, down, left, right } = game.getHandlers();
@@ -284,7 +294,4 @@ process.stdin.on('keypress', (_, key) => {
 
 game.start();
 
-// console.log(`Time: ${new Date().getTime() - startTime}`);
-
-// module.exports = Snake;
 
