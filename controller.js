@@ -7,10 +7,10 @@ class Controller {
   }
 
   set({ up, down, left, right, kill }) {
-    this.upBtn.addEventListener('click', up);
-    this.downBtn.addEventListener('click', down);
-    this.leftBtn.addEventListener('click', left);
-    this.rightBtn.addEventListener('click', right);
+    this.upBtn.addEventListener('click', _ => { up(); this.upBtn.blur(); });
+    this.downBtn.addEventListener('click', _ => { down(); this.downBtn.blur(); });
+    this.leftBtn.addEventListener('click', _ => { left(); this.leftBtn.blur(); });
+    this.rightBtn.addEventListener('click', _ => { right(); this.rightBtn.blur(); });
 
     const handleKeydown = ev => {
       switch (ev.keyCode) {
