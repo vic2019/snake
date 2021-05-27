@@ -27,6 +27,7 @@ class Controller {
     this.down = down;
     this.left = left;
     this.right = right;
+    this.kill = kill;
     this.keys = keys;
   }
 

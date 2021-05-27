@@ -144,6 +144,7 @@ class Game {
   constructor() {
     this.snake = new Snake();
     this.food = new Food(this.snake);
+    this.view = new View(document.getElementById('field'));
     this.noFood = false;
     this.controller = new Controller();
     this.killed = false;
@@ -208,10 +209,10 @@ class Game {
     while (this.snakeIsAlive()) {    
       /* Must follow this order: render -> sleep -> clear -> update data  */
       if (this.killed) break;
-      console.clear();
+      this.view.clear();
       this.snake.walk(this.foodIsEaten());
       this.checkAndReplaceFood();
-      consoleRender(this);
+      this.view.render(this);
       await sleep(this.getFramerate());
     }
     console.log('Game Over');
