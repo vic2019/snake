@@ -1,11 +1,20 @@
 class View {
-  constructor(canvas) {
-    this.ctx = canvas.getContext('2d');
+  constructor() {
+    const view = document.getElementById('view');
+    /* canvas.width is different from canvas.style.width.
+      The former sets the pixals; the latter scales the element.
+      Don't use canvas.style.width as it would blur the image. */
+    view.width = FIELD_WIDTH_PX;
+    view.height = FIELD_HEIGHT_PX;
+    view.style.visibility = 'visible';
+    this.ctx = view.getContext('2d');
+    this.clear();
+    this.message = document.getElementById('message');
   }
 
   clear() {
     this.ctx.fillStyle = COLOR_BLANK;
-    this.ctx.clearRect(0, 0, FIELD_WIDTH * U, FIELD_HEIGHT * U);
+    this.ctx.fillRect(0, 0, FIELD_WIDTH_PX, FIELD_HEIGHT_PX);
   }
 
   render(game) {
@@ -23,8 +32,19 @@ class View {
     const { x, y } = snake.head;
     ctx.fillStyle = COLOR_SNAKE_HEAD;
     ctx.fillRect(x * U + 1, y * U + 1, U - 2, U - 2);
+
+    this.message.innerText = `Score: ${game.score}`
+  }
+
+  finalRender(game) {
+    this.ctx.fillStyle = COLOR_FOG;
+    this.ctx.fillRect(0, 0, FIELD_WIDTH_PX, FIELD_HEIGHT_PX);
+    this.message.innerText = `Score: ${game.score}\nPlay again?`
   }
 }
+
+
+const view = new View();
 
 
 /*

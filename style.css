@@ -1,29 +1,31 @@
 :root {
-  --unit: 12;
-  --field-height: calc(var(--unit) * 19);
-  --field-width: calc(var(--unit) * 19);
   --bs-font-sans-serif: 'Ubuntu Mono', monospace;
+  --color-view-border: #606060;
 }
 
 header {
-  max-width: 18rem;
+  max-width: 16rem;
+}
+
+#view {
+  visibility: hidden;
+  border: 4px dotted var(--color-view-border);
+  border-radius: 8px;
 }
 
 .small-caps {
   font-variant: small-caps;
 }
 
-#field {
-  border: calc(var(--unit) / 2.5) solid #353535; 
-  border-radius: calc(var(--unit) / 2.5);
-  height: var(--field-height);
-  width: var(--field-width);
-}
-
 #play {
   width: 4.3rem;
   height: 4.3rem;
   margin-left: 0.8rem;
+}
+
+#message {
+  font-size: 1.25rem;
+  color: var(--color-view-border);
 }
 
 .arrow-buttons {

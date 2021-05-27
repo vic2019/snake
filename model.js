@@ -144,7 +144,7 @@ class Game {
   constructor() {
     this.snake = new Snake();
     this.food = new Food(this.snake);
-    this.view = new View(document.getElementById('field'));
+    this.view = view;
     this.noFood = false;
     this.controller = new Controller();
     this.killed = false;
@@ -193,8 +193,9 @@ class Game {
     if (this.snake.length < 4) return FRAMERATE_0;
     if (this.snake.length < 8) return FRAMERATE_1;
     if (this.snake.length < 12) return FRAMERATE_2;
-    if (this.snake.length < 20) return FRAMERATE_3;
-    return FRAMERATE_4;
+    if (this.snake.length < 18) return FRAMERATE_3;
+    if (this.snake.length < 28) return FRAMERATE_4;
+    return FRAMERATE_5;
   }
 
   setHandlers() {
@@ -206,17 +207,20 @@ class Game {
   }
 
   async start() {
+    /* 
+      The loop must follow this order: 
+      clear -> render -> sleep -> update -> check alive
+      There should be no rendering after check alive returns false.
+    */
     while (this.snakeIsAlive()) {    
-      /* Must follow this order: render -> sleep -> clear -> update data  */
-      if (this.killed) break;
       this.view.clear();
-      this.snake.walk(this.foodIsEaten());
-      this.checkAndReplaceFood();
       this.view.render(this);
       await sleep(this.getFramerate());
+      this.snake.walk(this.foodIsEaten());
+      this.checkAndReplaceFood();
+      if (this.killed) break;
     }
-    console.log('Game Over');
-    console.log('Press Ctrl+C or Esc to exit.\n');
+    this.view.finalRender(this);
   }
 }
 
