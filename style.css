@@ -4,22 +4,24 @@
 }
 
 header {
-  max-width: 16rem;
+  max-width: 20rem;
 }
 
 #view {
   visibility: hidden;
-  border: 4px dotted var(--color-view-border);
-  border-radius: 8px;
+  border: 6px dotted var(--color-view-border);
+  border-radius: 12px;
 }
 
 .small-caps {
+  font-size: inherit;
   font-variant: small-caps;
+  text-decoration: underline;
 }
 
 #play {
-  width: 4.3rem;
-  height: 4.3rem;
+  width: 6rem;
+  height: 6rem;
   margin-left: 0.8rem;
 }
 
@@ -33,27 +35,33 @@ header {
 }
 
 .arrow-buttons button {
-  width: 5rem;
+  width: 8rem;
+  height: 4rem;
   margin: 0.2rem 0.3rem;
 }
 
 #up {
-  border-top-left-radius: 1.6rem;
-  border-top-right-radius: 1.6rem;
+  border-top-left-radius: 2.6rem;
+  border-top-right-radius: 2.6rem;
+  width: 9rem;
 }
 
 #down {
-  border-bottom-left-radius: 1.6rem;
-  border-bottom-right-radius: 1.6rem;
+  border-bottom-left-radius: 2.6rem;
+  border-bottom-right-radius: 2.6rem;
+  width: 9rem;
 }
 
 #left {
-  border-top-left-radius: 1rem;
-  border-bottom-left-radius: 1rem;
+  border-top-left-radius: 1.6rem;
+  border-bottom-left-radius: 1.6rem;
 }
 
 #right {
-  border-top-right-radius: 1rem;
-  border-bottom-right-radius: 1rem;
+  border-top-right-radius: 1.6rem;
+  border-bottom-right-radius: 1.6rem;
 }
 
+.btn {
+  font-size: 1.25rem;
+}

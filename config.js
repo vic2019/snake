@@ -1,4 +1,4 @@
-const U = 12;
+const U = 18;
 const FIELD_WIDTH = 17;
 const FIELD_HEIGHT = 17;
 const FIELD_WIDTH_PX = FIELD_WIDTH * U;
@@ -12,8 +12,8 @@ const DIRECTION = {
   RIGHT: { x: 1, y: 0 },
   NONE: { x: 0, y: 0 },
 };
-const FRAMERATE_0 = 640;
-const FRAMERATE_1 = 550;
+const FRAMERATE_0 = 630;
+const FRAMERATE_1 = 540;
 const FRAMERATE_2 = 470;
 const FRAMERATE_3 = 380;
 const FRAMERATE_4 = 290;

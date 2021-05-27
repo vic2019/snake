@@ -6,13 +6,13 @@ function main() {
     await game.start();
     game.removeHandlers();
     togglePlay(game);
-  }
+  };
 
   const handleClick = () => {
     /* Must unfocus playBtn. See comment below */
     playBtn.blur();
     play();
-  }
+  };
   
   const handleSpaceBar = ev => {
     if (ev.keyCode != 32) return;
@@ -35,7 +35,7 @@ function main() {
       document.addEventListener('keydown', handleSpaceBar);
     }
     playBtn.classList.toggle('btn-danger')
-  }
+  };
 
   const playBtn = document.getElementById('play');
   document.addEventListener('keydown', handleSpaceBar);

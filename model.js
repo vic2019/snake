@@ -104,7 +104,7 @@ class Snake {
         },
         done: node == null
       };
-    }
+    };
     return { next };
   }
 
@@ -190,9 +190,9 @@ class Game {
   }
 
   getFramerate() {
-    if (this.snake.length < 4) return FRAMERATE_0;
-    if (this.snake.length < 8) return FRAMERATE_1;
-    if (this.snake.length < 12) return FRAMERATE_2;
+    if (this.snake.length < 3) return FRAMERATE_0;
+    if (this.snake.length < 7) return FRAMERATE_1;
+    if (this.snake.length < 11) return FRAMERATE_2;
     if (this.snake.length < 18) return FRAMERATE_3;
     if (this.snake.length < 28) return FRAMERATE_4;
     return FRAMERATE_5;

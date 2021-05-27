@@ -1,3 +1,6 @@
+let highScore = 0;
+
+
 class View {
   constructor() {
     const view = document.getElementById('view');
@@ -33,13 +36,15 @@ class View {
     ctx.fillStyle = COLOR_SNAKE_HEAD;
     ctx.fillRect(x * U + 1, y * U + 1, U - 2, U - 2);
 
-    this.message.innerText = `Score: ${game.score}`
+    this.message.innerText = `Score: ${game.score}`;
   }
 
   finalRender(game) {
     this.ctx.fillStyle = COLOR_FOG;
     this.ctx.fillRect(0, 0, FIELD_WIDTH_PX, FIELD_HEIGHT_PX);
-    this.message.innerText = `Score: ${game.score}\nPlay again?`
+
+    if (game.score > highScore) highScore = game.score;
+    this.message.innerText = `High Score: ${highScore}\nLast Score: ${game.score}`;
   }
 }
 
