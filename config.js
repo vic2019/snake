@@ -12,8 +12,8 @@ const DIRECTION = {
   RIGHT: { x: 1, y: 0 },
   NONE: { x: 0, y: 0 },
 };
-const FRAMERATE_0 = 650;
-const FRAMERATE_1 = 560;
+const FRAMERATE_0 = 640;
+const FRAMERATE_1 = 550;
 const FRAMERATE_2 = 470;
 const FRAMERATE_3 = 380;
 const FRAMERATE_4 = 290;
