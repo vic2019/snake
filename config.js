@@ -1,4 +1,4 @@
-const U = 18;
+const U = 17;
 const FIELD_WIDTH = 17;
 const FIELD_HEIGHT = 17;
 const FIELD_WIDTH_PX = FIELD_WIDTH * U;
