@@ -22,34 +22,25 @@ class Snake {
     this.tail = this.head;
     this.length = 1;
     this.direction = Snake.getRandomDirection();
-    this.lock = false;
-  }
-
-  index(i = 0) {
-    let node = this.head;
-    let index = 0;
-    for (; node && index < i; index++) {
-      node = node.next;
-    }
-    return index == i ? node : null;
+    this.turnLock = false;
   }
 
   turn(direction) {
-    if (this.lock) return;
+    if (this.turnLock) return;
 
     switch (this.direction) {
       case DIRECTION.UP:
       case DIRECTION.DOWN:
         if (direction == DIRECTION.LEFT || direction == DIRECTION.RIGHT) {
           this.direction = direction;
-          this.lock = true;
+          this.turnLock = true;
         }
         return;
       case DIRECTION.LEFT:
       case DIRECTION.RIGHT:
         if (direction == DIRECTION.UP || direction == DIRECTION.DOWN) {
           this.direction = direction;
-          this.lock = true;
+          this.turnLock = true;
         }
         return;
     }
@@ -57,12 +48,12 @@ class Snake {
 
   walk(grow) {
     if (grow) {
-      const newHead = new Node(Snake.getNextPosition(this.head, this.direction));
+      const newHead = new Node(this.getNextPosition());
       this.head.prev = newHead;
       newHead.next = this.head;
       this.head = newHead;
       this.length += 1;
-      this.lock = false;
+      this.turnLock = false;
       return;
     }
 
@@ -77,20 +68,46 @@ class Snake {
 
     /* Reassign this.head only after moving newHead to 
       allow accessing the old head's coordinates */
-    newHead.moveTo(Snake.getNextPosition(this.head, this.direction));
+    newHead.moveTo(this.getNextPosition());
     this.head = newHead; 
-    this.lock = false;
+    this.turnLock = false;
   }
 
-  find(x, y, i) {
-    let node = this.index(i);
+  find(x, y) {
+    let node = this.head;
     while (node != null) {
       if (node.x == x && node.y == y) {
-        return true;
+        return node;
       }
       node = node.next;
     }
+    return null;
+  }
+
+  willDie() {
+    const { x, y } = this.getNextPosition();
+
+    if (!bounded(x, y)) return true;
+
+    const node = this.find(x, y);
+    if (node && node != this.tail) return true;
     return false;
+  }
+
+  getNextPosition() {
+    return {
+      x: this.head.x + this.direction.x,
+      y: this.head.y + this.direction.y
+    };
+  }
+
+  static getRandomDirection() {
+    switch (Math.floor(Math.random() * 4)) {
+      case 0: return DIRECTION.UP;
+      case 1: return DIRECTION.DOWN;
+      case 2: return DIRECTION.LEFT;
+      case 3: return DIRECTION.RIGHT;
+    }
   }
 
   [Symbol.iterator]() {
@@ -107,22 +124,6 @@ class Snake {
     };
     return { next };
   }
-
-  static getNextPosition(node, step) {
-    return {
-      x: node.x + step.x,
-      y: node.y + step.y
-    };
-  }
-
-  static getRandomDirection() {
-    switch (Math.floor(Math.random() * 4)) {
-      case 0: return DIRECTION.UP;
-      case 1: return DIRECTION.DOWN;
-      case 2: return DIRECTION.LEFT;
-      case 3: return DIRECTION.RIGHT;
-    }
-  }
 }
 
 
@@ -130,7 +131,7 @@ class Food {
   constructor(snake) {
     let x = Math.floor(Math.random() * FIELD_WIDTH),
         y = Math.floor(Math.random() * FIELD_HEIGHT);
-    while (snake.find(x, y, 0)) {
+    while (snake.find(x, y)) {
       x = Math.floor(Math.random() * FIELD_WIDTH);
       y = Math.floor(Math.random() * FIELD_HEIGHT);
     }
@@ -154,23 +155,9 @@ class Game {
     return this.snake.length - 1;
   }
 
-  snakeIsAlive() {
-    const { x, y } = this.snake.head;
-    if (
-      x >= FIELD_WIDTH ||
-      x < 0 ||
-      y >= FIELD_HEIGHT ||
-      y < 0
-    ) return false;
-
-    if (this.snake.find(x, y, 1)) return false;
-
-    return true;
-  }
-
   foodIsEaten() {
-    const nextPosition = Snake.getNextPosition(this.snake.head, this.snake.direction);
-    return this.noFood = nextPosition.x  == this.food.x && nextPosition.y == this.food.y;
+    const { x, y } = this.snake.getNextPosition();
+    return this.noFood = x  == this.food.x && y == this.food.y;
   }
 
   checkAndReplaceFood() {
@@ -209,18 +196,20 @@ class Game {
   async start() {
     /* 
       The loop must follow this order: 
-      clear -> render -> sleep -> update -> check alive
-      There should be no rendering after check alive returns false.
+      clear -> render -> sleep -> check if will die after next update -> update
+      Do not render if snake will die after next update.
     */
-    while (this.snakeIsAlive()) {    
+    while (true) {    
       this.view.clear();
       this.view.render(this);
       await sleep(this.getFramerate());
+      if (this.killed || this.snake.willDie()) {
+        this.view.finalRender(this);
+        break;
+      }
       this.snake.walk(this.foodIsEaten());
       this.checkAndReplaceFood();
-      if (this.killed) break;
     }
-    this.view.finalRender(this);
   }
 }
 
