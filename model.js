@@ -193,8 +193,8 @@ class Game {
     if (this.snake.length < 3) return FRAMERATE_0;
     if (this.snake.length < 7) return FRAMERATE_1;
     if (this.snake.length < 11) return FRAMERATE_2;
-    if (this.snake.length < 18) return FRAMERATE_3;
-    if (this.snake.length < 28) return FRAMERATE_4;
+    if (this.snake.length < 19) return FRAMERATE_3;
+    if (this.snake.length < 32) return FRAMERATE_4;
     return FRAMERATE_5;
   }
 

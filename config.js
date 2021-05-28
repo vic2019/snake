@@ -12,12 +12,12 @@ const DIRECTION = {
   RIGHT: { x: 1, y: 0 },
   NONE: { x: 0, y: 0 },
 };
-const FRAMERATE_0 = 630;
-const FRAMERATE_1 = 540;
-const FRAMERATE_2 = 470;
-const FRAMERATE_3 = 380;
+const FRAMERATE_0 = 600;
+const FRAMERATE_1 = 530;
+const FRAMERATE_2 = 450;
+const FRAMERATE_3 = 370;
 const FRAMERATE_4 = 290;
-const FRAMERATE_5 = 230;
+const FRAMERATE_5 = 240;
 const COLOR_SNAKE_BODY = '#239b56';
 const COLOR_SNAKE_HEAD = '#196f3d';
 const COLOR_FOOD = '#d22d3b';
